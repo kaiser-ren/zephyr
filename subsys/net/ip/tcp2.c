@@ -12,7 +12,10 @@ LOG_MODULE_REGISTER(net_tcp, CONFIG_NET_TCP_LOG_LEVEL);
 #include <stdlib.h>
 #include <zephyr.h>
 #include <random/rand32.h>
+
+#if defined(CONFIG_NET_TCP_ISN_RFC6528)
 #include <mbedtls/md5.h>
+#endif
 #include <net/net_pkt.h>
 #include <net/net_context.h>
 #include <net/udp.h>
@@ -349,12 +352,22 @@ static void tcp_send_queue_flush(struct tcp *conn)
 	}
 }
 
+#if CONFIG_NET_TCP_LOG_LEVEL >= LOG_LEVEL_DBG
+#define tcp_conn_unref(conn)				\
+	tcp_conn_unref_debug(conn, __func__, __LINE__)
+
+static int tcp_conn_unref_debug(struct tcp *conn, const char *caller, int line)
+#else
 static int tcp_conn_unref(struct tcp *conn)
+#endif
 {
 	int ref_count = atomic_get(&conn->ref_count);
 	struct net_pkt *pkt;
 
-	NET_DBG("conn: %p, ref_count=%d", conn, ref_count);
+#if CONFIG_NET_TCP_LOG_LEVEL >= LOG_LEVEL_DBG
+	NET_DBG("conn: %p, ref_count=%d (%s():%d)", conn, ref_count,
+		caller, line);
+#endif
 
 #if !defined(CONFIG_NET_TEST_PROTOCOL)
 	if (conn->in_connect) {
@@ -1313,7 +1326,10 @@ static uint32_t tcpv6_init_isn(struct in6_addr *saddr,
 	}
 
 	memcpy(buf.key, unique_key, sizeof(buf.key));
+
+#if IS_ENABLED(CONFIG_NET_TCP_ISN_RFC6528)
 	mbedtls_md5_ret((const unsigned char *)&buf, sizeof(buf), hash);
+#endif
 
 	return seq_scale(UNALIGNED_GET((uint32_t *)&hash[0]));
 }
@@ -1345,7 +1361,10 @@ static uint32_t tcpv4_init_isn(struct in_addr *saddr,
 	}
 
 	memcpy(buf.key, unique_key, sizeof(unique_key));
+
+#if IS_ENABLED(CONFIG_NET_TCP_ISN_RFC6528)
 	mbedtls_md5_ret((const unsigned char *)&buf, sizeof(buf), hash);
+#endif
 
 	return seq_scale(UNALIGNED_GET((uint32_t *)&hash[0]));
 }
