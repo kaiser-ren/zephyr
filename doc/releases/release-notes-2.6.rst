@@ -51,14 +51,31 @@ Deprecated in this release
   :c:macro:`DT_INST_IO_CHANNELS_LABEL` were deprecated in favor of utilizing
   :c:macro:`DT_IO_CHANNELS_CTLR` and variants.
 
+* :c:macro:`DT_DMAS_LABEL_BY_IDX`,
+  :c:macro:`DT_DMAS_LABEL_BY_NAME`,
+  :c:macro:`DT_INST_DMAS_LABEL_BY_IDX`, and
+  :c:macro:`DT_INST_DMAS_LABEL_BY_NAME` were deprecated in favor of utilizing
+  :c:macro:`DT_DMAS_CTLR` and variants.
+
 * USB HID specific macros in ``<include/usb/class/usb_hid.h>`` are deprecated
   in favor of new common HID macros defined in ``<include/usb/class/hid.h>``.
+
+* USB HID Kconfig option USB_HID_PROTOCOL_CODE is deprecated.
+  USB_HID_PROTOCOL_CODE does not allow to set boot protocol code for specific
+  HID device. USB HID API function usb_hid_set_proto_code() can be used instead.
+
+* The ``CONFIG_OPENOCD_SUPPORT`` Kconfig option has been deprecated in favor
+  of ``CONFIG_DEBUG_THREAD_INFO``.
 
 ==========================
 
 Removed APIs in this release
 
 * Removed support for the old zephyr integer typedefs (u8_t, u16_t, etc...).
+
+* Removed support for k_mem_domain_destroy and k_mem_domain_remove_thread
+
+* Removed support for counter_read and counter_get_max_relative_alarm
 
 ============================
 

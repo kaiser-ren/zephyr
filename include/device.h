@@ -14,6 +14,13 @@
  * @}
  */
 /**
+ * @brief Miscellaneous Drivers APIs
+ * @defgroup misc_interfaces Miscellaneous Drivers APIs
+ * @ingroup io_interfaces
+ * @{
+ * @}
+ */
+/**
  * @brief Device Model APIs
  * @defgroup device_model Device Model APIs
  * @{
@@ -636,11 +643,6 @@ static inline int z_impl_device_usable_check(const struct device *dev)
 static inline bool device_is_ready(const struct device *dev)
 {
 	return device_usable_check(dev) == 0;
-}
-
-static inline bool z_impl_device_is_ready(const struct device *dev)
-{
-	return z_device_ready(dev);
 }
 
 /**
