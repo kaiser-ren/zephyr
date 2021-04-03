@@ -66,6 +66,7 @@ struct ll_conn {
 	union {
 		struct {
 			uint8_t fex_valid:1;
+			uint8_t txn_lock:1;
 #if defined(CONFIG_BT_CTLR_CONN_META)
 			uint8_t is_must_expire:1;
 #endif /* CONFIG_BT_CTLR_CONN_META */
@@ -74,6 +75,7 @@ struct ll_conn {
 #if defined(CONFIG_BT_PERIPHERAL)
 		struct {
 			uint8_t  fex_valid:1;
+			uint8_t  txn_lock:1;
 #if defined(CONFIG_BT_CTLR_CONN_META)
 			uint8_t  is_must_expire:1;
 #endif /* CONFIG_BT_CTLR_CONN_META */
@@ -94,6 +96,7 @@ struct ll_conn {
 #if defined(CONFIG_BT_CENTRAL)
 		struct {
 			uint8_t fex_valid:1;
+			uint8_t txn_lock:1;
 #if defined(CONFIG_BT_CTLR_CONN_META)
 			uint8_t is_must_expire:1;
 #endif /* CONFIG_BT_CTLR_CONN_META */
@@ -333,8 +336,6 @@ struct ll_conn {
 		uint32_t cis_offset_min;
 		uint32_t cis_offset_max;
 		uint16_t conn_event_count;
-		uint32_t cig_sync_delay;
-		uint32_t cis_sync_delay;
 	} llcp_cis;
 #endif /* CONFIG_BT_CTLR_PERIPHERAL_ISO */
 };

@@ -102,6 +102,19 @@ void npcx_pinctrl_mux_configure(const struct npcx_alt *alts_list,
 void npcx_pinctrl_i2c_port_sel(int controller, int port);
 
 /**
+ * @brief Force the internal SPI flash write-protect pin (WP) to low level to
+ * protect the flash Status registers.
+ */
+int npcx_pinctrl_flash_write_protect_set(void);
+
+/**
+ * @brief Get write protection status
+ *
+ * @return 1 if write protection is set, 0 otherwise.
+ */
+bool npcx_pinctrl_flash_write_protect_is_set(void);
+
+/**
  * @brief Set PSL output pad to inactive level.
  *
  * The PSL_OUT output pad should be connected to the control pin of either the
@@ -127,7 +140,7 @@ void npcx_pinctrl_psl_input_configure(void);
  * @param i index of 'psl-in-pads' prop
  * @return 1 is asserted, otherwise de-asserted.
  */
-bool npcx_pinctrl_psl_input_asserted(int i);
+bool npcx_pinctrl_psl_input_asserted(uint32_t i);
 
 #ifdef __cplusplus
 }

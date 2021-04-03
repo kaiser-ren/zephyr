@@ -132,6 +132,12 @@ struct zsock_pollfd {
  *  the TLS handshake.
  */
 #define TLS_ALPN_LIST 7
+/** Socket option to set DTLS handshake timeout. The timeout starts at min,
+ *  and upon retransmission the timeout is doubled util max is reached.
+ *  Min and max arguments are separate options. The time unit is ms.
+ */
+#define TLS_DTLS_HANDSHAKE_TIMEOUT_MIN 8
+#define TLS_DTLS_HANDSHAKE_TIMEOUT_MAX 9
 
 /** @} */
 
@@ -797,6 +803,13 @@ static inline char *inet_ntop(sa_family_t family, const void *src, char *dst,
 #define EAI_FAMILY DNS_EAI_FAMILY
 #endif /* defined(CONFIG_NET_SOCKETS_POSIX_NAMES) */
 
+#define IFNAMSIZ Z_DEVICE_MAX_NAME_LEN
+
+/** Interface description structure */
+struct ifreq {
+	char ifr_name[IFNAMSIZ]; /* Interface name */
+};
+
 /** sockopt: Socket-level option */
 #define SOL_SOCKET 1
 
@@ -815,6 +828,9 @@ static inline char *inet_ntop(sa_family_t family, const void *src, char *dst,
 #define SO_RCVTIMEO 20
 /** sockopt: Send timeout */
 #define SO_SNDTIMEO 21
+
+/** sockopt: Bind a socket to an interface */
+#define SO_BINDTODEVICE	25
 
 /** sockopt: Timestamp TX packets */
 #define SO_TIMESTAMPING 37
