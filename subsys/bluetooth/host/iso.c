@@ -775,12 +775,16 @@ static void bt_iso_chan_disconnected(struct bt_iso_chan *chan, uint8_t reason)
 		return;
 	}
 
-	bt_iso_chan_set_state(chan, BT_ISO_BOUND);
+	if (chan->conn->iso.is_bis) {
+		bt_iso_chan_set_state(chan, BT_ISO_DISCONNECTED);
+	} else {
+		bt_iso_chan_set_state(chan, BT_ISO_BOUND);
 
-	/* Unbind if acting as slave or ACL has been disconnected */
-	if (chan->conn->role == BT_HCI_ROLE_SLAVE ||
-	    chan->conn->iso.acl->state == BT_CONN_DISCONNECTED) {
-		bt_iso_chan_unbind(chan);
+		/* Unbind if acting as slave or ACL has been disconnected */
+		if (chan->conn->role == BT_HCI_ROLE_SLAVE ||
+		    chan->conn->iso.acl->state == BT_CONN_DISCONNECTED) {
+			bt_iso_chan_unbind(chan);
+		}
 	}
 
 	if (chan->ops->disconnected) {
@@ -1490,7 +1494,7 @@ void hci_le_big_complete(struct net_buf *buf)
 
 		big = big_lookup_flag(BT_BIG_PENDING);
 		if (big) {
-			big_disconnect(big);
+			big_disconnect(big, evt->status ? evt->status : BT_HCI_ERR_UNSPECIFIED);
 			cleanup_big(big);
 		}
 
@@ -1502,9 +1506,12 @@ void hci_le_big_complete(struct net_buf *buf)
 
 	BT_DBG("BIG[%u] %p completed, status %u", big->handle, big, evt->status);
 
-	if (evt->num_bis != big->num_bis) {
-		BT_ERR("Invalid number of BIS, was %u expected %u", evt->num_bis, big->num_bis);
-		big_disconnect(big);
+	if (evt->status || evt->num_bis != big->num_bis) {
+		if (evt->num_bis != big->num_bis) {
+			BT_ERR("Invalid number of BIS, was %u expected %u",
+			       evt->num_bis, big->num_bis);
+		}
+		big_disconnect(big, evt->status ? evt->status : BT_HCI_ERR_UNSPECIFIED);
 		cleanup_big(big);
 		return;
 	}
@@ -1545,7 +1552,7 @@ void hci_le_big_sync_established(struct net_buf *buf)
 		BT_WARN("Invalid BIG handle");
 		big = big_lookup_flag(BT_BIG_SYNCING);
 		if (big) {
-			big_disconnect(big);
+			big_disconnect(big, evt->status ? evt->status : BT_HCI_ERR_UNSPECIFIED);
 			cleanup_big(big);
 		}
 
@@ -1558,6 +1565,10 @@ void hci_le_big_sync_established(struct net_buf *buf)
 	BT_DBG("BIG[%u] %p sync established", big->handle, big);
 
 	if (evt->status || evt->num_bis != big->num_bis) {
+		if (evt->num_bis != big->num_bis) {
+			BT_ERR("Invalid number of BIS, was %u expected %u",
+			       evt->num_bis, big->num_bis);
+		}
 		big_disconnect(big, evt->status ? evt->status : BT_HCI_ERR_UNSPECIFIED);
 		cleanup_big(big);
 		return;
