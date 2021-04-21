@@ -24,7 +24,6 @@
 #include <sys/arch_interface.h>
 
 #define SGI_SCHED_IPI	0
-#define SGI_PTABLE_IPI	1
 
 volatile struct {
 	void *sp; /* Fixed at the first entry */
@@ -72,9 +71,6 @@ void z_arm64_secondary_start(void)
 	arm_gic_secondary_init();
 
 	irq_enable(SGI_SCHED_IPI);
-#ifdef CONFIG_USERSPACE
-	irq_enable(SGI_PTABLE_IPI);
-#endif
 #endif
 
 	fn = arm64_cpu_init[cpu_num].fn;
@@ -92,21 +88,17 @@ void z_arm64_secondary_start(void)
 }
 
 #ifdef CONFIG_SMP
-
-static void broadcast_ipi(unsigned int ipi)
-{
-	const uint64_t mpidr = GET_MPIDR();
-
-	/*
-	 * Send SGI to all cores except itself
-	 * Note: Assume only one Cluster now.
-	 */
-	gic_raise_sgi(ipi, mpidr, SGIR_TGT_MASK & ~(1 << MPIDR_TO_CORE(mpidr)));
-}
-
 void sched_ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
+
+#ifdef CONFIG_USERSPACE
+	/*
+	 * Make sure a domain switch by another CPU is effective on this CPU.
+	 * This is a no-op if the page table is already the right one.
+	 */
+	z_arm64_swap_ptables(_current);
+#endif
 
 	z_sched_ipi();
 }
@@ -114,26 +106,13 @@ void sched_ipi_handler(const void *unused)
 /* arch implementation of sched_ipi */
 void arch_sched_ipi(void)
 {
-	broadcast_ipi(SGI_SCHED_IPI);
-}
-
-#ifdef CONFIG_USERSPACE
-void ptable_ipi_handler(const void *unused)
-{
-	ARG_UNUSED(unused);
-
+	const uint64_t mpidr = GET_MPIDR();
 	/*
-	 * Make sure a domain switch by another CPU is effective on this CPU.
-	 * This is a no-op if the page table is already the right one.
+	 * Send SGI to all cores except itself
+	 * Note: Assume only one Cluster now.
 	 */
-	z_arm64_swap_ptables(_current);
+	gic_raise_sgi(SGI_SCHED_IPI, mpidr, SGIR_TGT_MASK & ~(1 << MPIDR_TO_CORE(mpidr)));
 }
-
-void z_arm64_ptable_ipi(void)
-{
-	broadcast_ipi(SGI_PTABLE_IPI);
-}
-#endif
 
 static int arm64_smp_init(const struct device *dev)
 {
@@ -144,15 +123,10 @@ static int arm64_smp_init(const struct device *dev)
 	 * option
 	 */
 	IRQ_CONNECT(SGI_SCHED_IPI, IRQ_DEFAULT_PRIORITY, sched_ipi_handler, NULL, 0);
-	irq_enable(SGI_SCHED_IPI);
 
-#ifdef CONFIG_USERSPACE
-	IRQ_CONNECT(SGI_PTABLE_IPI, IRQ_DEFAULT_PRIORITY, ptable_ipi_handler, NULL, 0);
-	irq_enable(SGI_PTABLE_IPI);
-#endif
+	irq_enable(SGI_SCHED_IPI);
 
 	return 0;
 }
 SYS_INIT(arm64_smp_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
-
 #endif

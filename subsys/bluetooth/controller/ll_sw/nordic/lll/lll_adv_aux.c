@@ -233,9 +233,14 @@ static int prepare_cb(struct lll_prepare_param *p)
 
 	/* Abort if no aux_ptr filled */
 	if (unlikely(!pri_hdr->aux_ptr || !aux_ptr->offs)) {
-		radio_isr_set(lll_isr_early_abort, lll);
-		radio_disable();
+		int err;
 
+		err = lll_hfclock_off();
+		LL_ASSERT(err >= 0);
+
+		lll_done(NULL);
+
+		DEBUG_RADIO_CLOSE_A(0);
 		return 0;
 	}
 

@@ -830,7 +830,7 @@ static int arc_mpu_init(const struct device *arg)
 		return -EINVAL;
 	}
 
-	static_regions_num = 0U;
+	static_regions_num = 0;
 
 	/* Disable MPU */
 	arc_core_mpu_disable();

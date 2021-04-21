@@ -12,7 +12,6 @@
 
 #include <settings/settings.h>
 #include <sys/util.h>
-#include <bluetooth/mesh/msg.h>
 
 /* Internal macros used to initialize array members */
 #define BT_MESH_KEY_UNUSED_ELT_(IDX, _) BT_MESH_KEY_UNUSED,

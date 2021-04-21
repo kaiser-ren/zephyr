@@ -24,4 +24,3 @@ void lll_isr_status_reset(void);
 void lll_isr_abort(void *param);
 void lll_isr_done(void *param);
 void lll_isr_cleanup(void *param);
-void lll_isr_early_abort(void *param);
